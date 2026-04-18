@@ -1,6 +1,6 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 
-export default function MapView() {
+export default function MapView({ route }) {
   return (
     <MapContainer
       center={[-33.8688, 151.2093]} // Sydney
@@ -15,6 +15,11 @@ export default function MapView() {
       <Marker position={[-33.8688, 151.2093]}>
         <Popup>Sydney</Popup>
       </Marker>
+
+      {/* ✅ Route rendering */}
+      {route.length > 0 && (
+        <Polyline positions={route} />
+      )}
     </MapContainer>
   );
 }
