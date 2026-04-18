@@ -5,6 +5,7 @@ import MapView from './components/MapView.jsx';
 import { fetchRoutes } from './services/api';
 
 // Prevents Vite from breaking Leaflet's default marker icons
+// Prevents Vite from breaking Leaflet's default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: new URL('leaflet/dist/images/marker-icon-2x.png', import.meta.url).href,
@@ -12,14 +13,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
 });
 
+import MapView from './components/MapView.jsx';
+
 function App() {
   const [routes, setRoutes] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
 
   // 🧭 Get user location — fall back to Sydney CBD if denied
   useEffect(() => {
-    if (!navigator.geolocation) return;
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         console.log('Geolocation success', pos);
