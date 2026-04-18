@@ -14,7 +14,7 @@ function RecenterMap({ currentLocation }) {
   return null;
 }
 
-export default function MapView({ route, currentLocation }) {
+export default function MapView({ routes, currentLocation }) {
   const defaultCenter = [-33.8688, 151.2093]; // Sydney fallback
 
   return (
@@ -40,8 +40,8 @@ export default function MapView({ route, currentLocation }) {
       )}
 
       {/* ✅ Route rendering (your original feature) */}
-      {route.length > 0 && (
-        <Polyline positions={route} color="blue" />
+      {routes.length > 0 && (
+        <Polyline positions={routes} color="blue" />
       )}
     </MapContainer>
   );
