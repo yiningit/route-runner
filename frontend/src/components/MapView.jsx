@@ -1,48 +1,93 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import { useEffect } from 'react';
 
-// 👇 This makes the map move to the user location
-function RecenterMap({ currentLocation }) {
+const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
+const ROUTE_LABELS = ['🟢 Best', '🟡 Good', '🔴 Okay'];
+
+/**
+ * Fits the map to all route coordinates once routes load,
+ * or recentres on the user's location while routes are still loading.
+ */
+function FitMapToRoutes({ currentLocation, routes }) {
   const map = useMap();
 
   useEffect(() => {
-    if (currentLocation) {
-      map.setView([currentLocation.lat, currentLocation.lng], 15);
+    if (routes && routes.length > 0) {
+      const allPoints = routes.flatMap((route) => route.latLngs);
+      if (allPoints.length > 0) {
+        map.fitBounds(allPoints, { padding: [30, 30] });
+      }
+    } else if (currentLocation) {
+      map.setView([currentLocation.lat, currentLocation.lng], 14);
     }
-  }, [currentLocation, map]);
+  }, [currentLocation, routes, map]);
 
   return null;
 }
 
-export default function MapView({ routes, currentLocation }) {
+function getRouteColor(index) {
+  return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
+}
+
+function getRouteLabel(index) {
+  return ROUTE_LABELS[index] ?? `Route ${index + 1}`;
+}
+
+export default function MapView({ currentLocation, routes = [] }) {
   const defaultCenter = [-33.8688, 151.2093]; // Sydney fallback
 
   return (
     <MapContainer
       center={defaultCenter}
       zoom={13}
-      style={{ height: '100vh', width: '100%' }}
+      style={{ height: '100%', width: '100%' }}
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* 👇 move map when location loads */}
-      <RecenterMap currentLocation={currentLocation} />
+      <FitMapToRoutes currentLocation={currentLocation} routes={routes} />
 
-      {/* ❌ REMOVE old fixed Sydney marker */}
-      {/* ✅ ADD dynamic user marker */}
+      {/* User location marker */}
       {currentLocation && (
         <Marker position={[currentLocation.lat, currentLocation.lng]}>
-          <Popup>You are here 📍</Popup>
+          <Popup>Start point 📍</Popup>
         </Marker>
       )}
 
-      {/* ✅ Route rendering (your original feature) */}
-      {routes.length > 0 && (
-        <Polyline positions={routes} color="blue" />
-      )}
+      {/* Routes — each rendered as a dark drop-shadow + coloured line */}
+      {routes.map((route, index) => (
+        <div key={route.id ?? index}>
+          {/* Drop shadow */}
+          <Polyline
+            positions={route.latLngs}
+            pathOptions={{
+              color: '#000000',
+              weight: index === 0 ? 11 : 7,
+              opacity: 0.18,
+            }}
+          />
+          {/* Coloured route line */}
+          <Polyline
+            positions={route.latLngs}
+            pathOptions={{
+              color: getRouteColor(index),
+              weight: index === 0 ? 8 : 5,
+              opacity: index === 0 ? 1 : 0.85,
+            }}
+          >
+            <Popup>
+              <strong>{getRouteLabel(index)}</strong>
+              <br />
+              {(route.distance_m / 1000).toFixed(2)} km
+              {route.elevation_gain_m > 0 && (
+                <> · ↑{route.elevation_gain_m} m</>
+              )}
+            </Popup>
+          </Polyline>
+        </div>
+      ))}
     </MapContainer>
   );
 }
