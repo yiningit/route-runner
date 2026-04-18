@@ -18,6 +18,9 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from services.ors_client import get_routes_from_location
+from models.schemas import RouteRequest, RouteResponse, RouteResult
+
 # --- Data model -----------------------------------------------------------
 
 @dataclass
@@ -306,12 +309,7 @@ if __name__ == "__main__":
         
 # ---------------------------------------------------------------------------
 # FastAPI entry point
-# ---------------------------------------------------------------------------
-
-from services.ors_client import get_routes_from_location
-from models.schemas import RouteRequest, RouteResponse, RouteResult
- 
- 
+# --------------------------------------------------------------------------- 
 async def generate(request: RouteRequest) -> RouteResponse:
     """
     Called by route.py. Fetches candidates from ORS, scores and ranks them,
