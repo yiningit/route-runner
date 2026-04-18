@@ -1,8 +1,8 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from './assets/vite.svg'
-// import heroImg from './assets/hero.png'
-// import './App.css'
+import { useEffect, useState } from 'react';
+import MapView from './components/MapView';
+import { fetchRoute } from './services/api';
+
+
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';   // Leaflet CSS to render leaflet components
 
@@ -16,15 +16,36 @@ L.Icon.Default.mergeOptions({
 });
 
 
-import MapView from './components/MapView.jsx';
 
 function App() {
+  const [route, setRoute] = useState([]);
+
+  useEffect(() => {
+    const loadRoute = async () => {
+      try {
+        const data = await fetchRoute();
+
+        // Extract coordinates from GeoJSON
+        const coords = data.features[0].geometry.coordinates;
+
+        // Convert [lng, lat] → [lat, lng]
+        const latLngs = coords.map(([lng, lat]) => [lat, lng]);
+
+        setRoute(latLngs);
+      } catch (err) {
+        console.error('Error fetching route:', err);
+      }
+    };
+
+    loadRoute();
+  }, []);
+  
   return (
     <>
       <h1>Route Runner MVP 🚴</h1>
 
       <div style={{ height: '100vh', width: '100%' }}>
-        <MapView />
+        <MapView route={route}/>
       </div>
     </>
   );
