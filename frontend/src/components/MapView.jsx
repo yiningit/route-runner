@@ -1,9 +1,25 @@
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { useEffect } from 'react';
 
-export default function MapView({ route }) {
+// 👇 This makes the map move to the user location
+function RecenterMap({ currentLocation }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (currentLocation) {
+      map.setView([currentLocation.lat, currentLocation.lng], 15);
+    }
+  }, [currentLocation, map]);
+
+  return null;
+}
+
+export default function MapView({ route, currentLocation }) {
+  const defaultCenter = [-33.8688, 151.2093]; // Sydney fallback
+
   return (
     <MapContainer
-      center={[-33.8688, 151.2093]} // Sydney
+      center={defaultCenter}
       zoom={13}
       style={{ height: '100vh', width: '100%' }}
     >
@@ -11,14 +27,21 @@ export default function MapView({ route }) {
         attribution='&copy; OpenStreetMap contributors'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      
-      <Marker position={[-33.8688, 151.2093]}>
-        <Popup>Sydney</Popup>
-      </Marker>
 
-      {/* ✅ Route rendering */}
+      {/* 👇 move map when location loads */}
+      <RecenterMap currentLocation={currentLocation} />
+
+      {/* ❌ REMOVE old fixed Sydney marker */}
+      {/* ✅ ADD dynamic user marker */}
+      {currentLocation && (
+        <Marker position={[currentLocation.lat, currentLocation.lng]}>
+          <Popup>You are here 📍</Popup>
+        </Marker>
+      )}
+
+      {/* ✅ Route rendering (your original feature) */}
       {route.length > 0 && (
-        <Polyline positions={route} />
+        <Polyline positions={route} color="blue" />
       )}
     </MapContainer>
   );

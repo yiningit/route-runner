@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react';
 import MapView from './components/MapView';
 import { fetchRoute } from './services/api';
 
-
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';   // Leaflet CSS to render leaflet components
+import 'leaflet/dist/leaflet.css';
 
-// Prevents Vite from breaking Leaflet's default marker icons
+// Fix Leaflet icons (important for Vite)
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -15,20 +14,37 @@ L.Icon.Default.mergeOptions({
   shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
 });
 
-
-
 function App() {
   const [route, setRoute] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState(null);
 
+  // 🧭 Get user location
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+      console.log("SUCCESS", pos);
+
+      setCurrentLocation({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      });
+    },
+    (err) => {
+      console.log("ERROR", err);
+      alert("Location error: " + err.message);
+    }
+  );
+}, []);
+
+  // 🛣 Fetch route (your existing logic)
   useEffect(() => {
     const loadRoute = async () => {
       try {
         const data = await fetchRoute();
 
-        // Extract coordinates from GeoJSON
         const coords = data.features[0].geometry.coordinates;
-
-        // Convert [lng, lat] → [lat, lng]
         const latLngs = coords.map(([lng, lat]) => [lat, lng]);
 
         setRoute(latLngs);
@@ -39,13 +55,16 @@ function App() {
 
     loadRoute();
   }, []);
-  
+
   return (
     <>
       <h1>Route Runner MVP 🚴</h1>
 
       <div style={{ height: '100vh', width: '100%' }}>
-        <MapView route={route}/>
+        <MapView 
+          route={route} 
+          currentLocation={currentLocation} 
+        />
       </div>
     </>
   );
