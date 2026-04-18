@@ -302,3 +302,70 @@ if __name__ == "__main__":
             f"flow={r['flow_score']}  "
             f"penalty={r['penalty']}"
         )
+
+        
+# ---------------------------------------------------------------------------
+# FastAPI entry point
+# ---------------------------------------------------------------------------
+
+from services.ors_client import get_routes_from_location
+from models.schemas import RouteRequest, RouteResponse, RouteResult
+ 
+ 
+async def generate(request: RouteRequest) -> RouteResponse:
+    """
+    Called by route.py. Fetches candidates from ORS, scores and ranks them,
+    returns a RouteResponse ready for the frontend.
+    """
+    # 1. Fetch ~10 candidate routes from ORS concurrently
+    raw_routes = await get_routes_from_location(
+        lat=request.start_lat,
+        lng=request.start_lng,
+        distance_km=request.distance_km,
+    )
+ 
+    # 2. Convert ORS dicts → Route dataclasses using the existing adapter
+    #    ors_client returns dicts with keys: geojson, distance_m, duration_s,
+    #    elevation_gain_m. route_from_ors_feature() expects a raw ORS feature,
+    #    so we reconstruct a minimal feature dict here.
+    routes = []
+    for i, raw in enumerate(raw_routes):
+        feature = {
+            "geometry": raw["geojson"],
+            "properties": {
+                "summary": {"distance": raw["distance_m"]},
+                "ascent": raw["elevation_gain_m"],
+            },
+        }
+        routes.append(route_from_ors_feature(feature, route_id=str(i + 1)))
+ 
+    # 3. Score and rank
+    prefs = Preferences(
+        target_distance_km=request.distance_km,
+        avoid_lights=request.avoid_traffic_lights,
+        avoid_hills=request.avoid_hills,
+    )
+    ranked = rank_routes(routes, prefs, top_n=3)
+ 
+    # 4. Map scoring dicts → RouteResult schema
+    results = [
+        RouteResult(
+            id=r["id"],
+            coordinates=r["coordinates"],
+            distance_km=r["distance_km"],
+            elevation_gain_m=r["elevation_gain_m"],
+            traffic_light_count=r["lights"],
+            flow_score=r["flow_score"],
+            score=r["penalty"],
+            label=r["label"],
+        )
+        for r in ranked
+    ]
+ 
+    return RouteResponse(
+        routes=results,
+        requested_distance_km=request.distance_km,
+        avoid_traffic_lights=request.avoid_traffic_lights,
+        avoid_hills=request.avoid_hills,
+    )
+ 
