@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Fragment } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -18,9 +18,6 @@ function getRouteColor(index) {
   return ROUTE_COLORS[index] ?? '#3b82f6';
 }
 
-/* =========================
-   📍 Fit EVERYTHING to map
-========================= */
 function FitToData({ currentLocation, routes, busyBusinesses }) {
   const map = useMap();
 
@@ -47,10 +44,6 @@ function FitToData({ currentLocation, routes, busyBusinesses }) {
   }, [map, currentLocation, routes, busyBusinesses]);
 
   return null;
-}
-
-function getRouteColor(index) {
-  return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
 }
 
 
@@ -103,9 +96,13 @@ function isNearRoute(light, route, threshold = 30) {
   return distance < threshold;
 }
 
-/* =========================
-   🌍 MAIN COMPONENT
-========================= */
+function MapClickHandler({ onClick }) {
+  useMapEvents({
+    click: () => onClick(),
+  });
+  return null;
+}
+
 export default function MapView({
   currentLocation,
   routes = [],

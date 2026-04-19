@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from backend.services.places import load_places
-from backend.services.scoring import compute_score, map_category
+from backend.services.crowd_scoring import compute_score, map_category
 
 df = load_places().head(20).copy()
 
