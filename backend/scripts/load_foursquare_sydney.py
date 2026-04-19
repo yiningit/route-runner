@@ -14,7 +14,7 @@ if not FSQ_API_KEY:
 
 # Assumes script lives at backend/scripts/load_foursquare_sydney.py
 ROOT = Path(__file__).resolve().parent.parent
-OUTPUT_PATH = ROOT / "backend" / "data" / "places_sample.parquet"
+OUTPUT_PATH = ROOT / "data" / "places_sample.parquet"
 OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Sydney bounding box
