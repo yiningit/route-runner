@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapView from './components/MapView.jsx';
-import { fetchRoutes } from './services/api';
+import RoutePanel from './components/RoutePanel.jsx';
+import useRoutes from './hooks/useRoutes.js';
 
 // Prevents Vite from breaking Leaflet's default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -12,28 +13,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: new URL('leaflet/dist/images/marker-shadow.png', import.meta.url).href,
 });
 
-
 function App() {
-  const [routes, setRoutes] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [distance, setDistance] = useState(5); 
-
-  const snapPoints = [5, 10, 15, 20];
-
-  const handleSliderChange = (value) => {
-    const threshold = 1;
-
-    const snapped = snapPoints.find(
-      (point) => Math.abs(point - value) <= threshold
-    );
-
-    setDistance(snapped ?? value);
-  };
-
+  const [distance, setDistance] = useState(5);
 
   // Get user location — fall back to Sydney CBD if denied
   useEffect(() => {
-    if (!navigator.geolocation) return;   // guards against no exposed geolocation
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         console.log('Geolocation success', pos);
@@ -49,116 +35,17 @@ function App() {
     );
   }, []);
 
-  // 🛣️ Fetch routes once location is available
-  useEffect(() => {
-    if (!currentLocation) return;
-
-    const loadRoutes = async () => {
-      try {
-        const data = await fetchRoutes(currentLocation.lat, currentLocation.lng, distance);
-        const converted = data.routes.map((route) => ({
-          ...route,
-          latLngs: route.coordinates  // already [lat, lng] from routing_service
-        }));
-        setRoutes(converted);
-
-        // Debug console output
-        console.group(`Routes loaded (${converted.length})`);
-        converted.forEach((route, i) => {
-          console.group(`Route ${i + 1} — ${route.label}`);
-          console.log('Distance:      ', route.distance_km, 'km');
-          console.log('Elevation gain:', route.elevation_gain_m, 'm');
-          console.log('Traffic lights:', route.traffic_light_count);
-          console.log('Flow score:    ', route.flow_score);
-          console.log('Penalty score: ', route.score);
-          console.log('Coordinates:   ', route.coordinates.length, 'points');
-          console.groupEnd();
-        });
-        console.groupEnd();
-        
-      } catch (err) {
-        console.error('Error fetching routes:', err);
-      }
-    };
-
-    loadRoutes();
-  }, [currentLocation, distance]);
+  const routes = useRoutes(currentLocation, distance);
 
   return (
     <>
       <h1 style={{ margin: '16px' }}>Route Runner MVP 🚴</h1>
 
-      {/* Route legend */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 80,
-          left: 10,
-          zIndex: 1000,
-          background: 'white',
-          padding: '14px',
-          borderRadius: '12px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
-          fontSize: '14px',
-          width: '160px',
-        }}
-      >
-        <div><strong>Route Ranking</strong></div>
-        <div>🟢 Best</div>
-        <div>🟡 Good</div>
-        <div>🔴 Okay</div>
+      <RoutePanel
+        distance={distance}
+        onDistanceChange={setDistance}
+      />
 
-        {/* 👇 SLIDER INSIDE */}
-        <div
-          style={{
-            marginTop: 14,
-            position: 'relative', 
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ marginBottom: 8, fontWeight: '600',fontsize: '16px' }}>
-            {distance} km
-          </div>
-
-          <input
-            type="range"
-            min="5"
-            max="20"
-            step="5"
-            value={distance}
-            onChange={(e) => setDistance(Number(e.target.value))}
-            style={{
-              writingMode: 'vertical-rl',
-              transform: 'rotate(180deg)',
-              height: '140px',  
-              width: '30px',
-              cursor: 'pointer',
-            }}
-          />
-
-          {/* optional mini labels */}
-          <div 
-            style={{
-              position: 'absolute',
-              right: 8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              height: '140px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              fontSize: 11,
-              color: '#666',
-            }}
-          >
-            <span>20</span>
-            <span>15</span>
-            <span>10</span>
-            <span>5</span>
-          </div>
-        </div>
-      </div>
       <div style={{ height: '100vh', width: '100%' }}>
         <MapView
           routes={routes}
