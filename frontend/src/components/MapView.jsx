@@ -96,6 +96,8 @@ function downloadGPX(route) {
    🚦 Traffic Light Detection
 ========================= */
 function isNearRoute(light, route, threshold = 30) {
+  if (!route || route.length < 2) return false; 
+
   const point = turf.point([light.lng, light.lat]);
   const line = turf.lineString(route.map(([lat, lng]) => [lng, lat]));
 
@@ -125,9 +127,11 @@ export default function MapView({
   const routeTrafficLights = useMemo(() => {
     return routes.map(route => ({
       routeId: route.id,
-      lights: trafficLights.filter(light =>
+      lights: route.latLngs
+        ? trafficLights.filter(light =>
         isNearRoute(light, route.latLngs)
-      ),
+        )
+      : [],
     }));
   }, [routes, trafficLights]);
 
@@ -194,7 +198,7 @@ export default function MapView({
           >
             <Popup>
               <strong>{route.label}</strong><br />
-              {route.distance_km.toFixed(2)} km
+              {route.distance_km.toFixed(2) ?? 0} km
               {route.elevation_gain_m > 0 && <> · ↑{route.elevation_gain_m} m</>}
               <> · 🚦{route.traffic_light_count}</>
 
