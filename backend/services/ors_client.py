@@ -52,13 +52,13 @@ async def get_routes_from_location(
         close their actual distance is to the requested distance.
         Failed/unreachable candidates are silently dropped.
     """
-    start = (lng, lat)  # ORS uses (lng, lat) order
-    waypoints = _generate_waypoints(lat, lng, distance_km)
+    start = (lng, lat)   # ORS uses (lng, lat) order
+    # waypoints = _generate_waypoints(lat, lng, distance_km)
 
     # Fire all ORS requests concurrently — much faster than sequential
     tasks = [
-        _get_route(start, wp, profile, include_elevation)
-        for wp in waypoints
+        _get_route(start, seed=i, distance_m=distance_km * 1000, profile=profile, include_elevation=include_elevation)
+        for i in range(CANDIDATE_COUNT)
     ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -68,6 +68,36 @@ async def get_routes_from_location(
             logger.warning("Candidate route %d failed: %s", i, result)
             continue
         routes.append(result)
+
+
+    # Debug for routes
+    for i, route in enumerate(routes):
+        coords = route["geojson"]["coordinates"]
+        mid = len(coords) // 2
+
+        midpoint = coords[mid]
+        first_half = coords[:mid]
+        second_half = coords[mid:]
+
+        # Check how similar the two halves are by comparing a sample of points
+        sample_size = min(5, len(first_half))
+        forward = first_half[:sample_size]
+        backward = list(reversed(second_half))[:sample_size]
+
+        diffs = [
+            abs(forward[j][0] - backward[j][0]) + abs(forward[j][1] - backward[j][1])
+            for j in range(sample_size)
+        ]
+        avg_diff = sum(diffs) / sample_size
+
+        logger.warning(
+            "Route %d: %dm, midpoint=(%.4f,%.4f), half-similarity=%.6f %s",
+            i,
+            route["distance_m"],
+            midpoint[0], midpoint[1],
+            avg_diff,
+            "WARNING: LIKELY OUT-AND-BACK" if avg_diff < 0.00005 else "OK: looks like a loop"
+        )
 
     if not routes:
         raise ORSError("All candidate routes failed. Check your ORS API key and network.")
@@ -80,75 +110,31 @@ async def get_routes_from_location(
 
 
 # ---------------------------------------------------------------------------
-# Waypoint generation
-# ---------------------------------------------------------------------------
-
-def _generate_waypoints(
-    lat: float,
-    lng: float,
-    distance_km: float,
-) -> list[tuple[float, float]]:
-    """
-    Return CANDIDATE_COUNT (lng, lat) waypoints spread evenly around the
-    start point at a radius suited to the desired loop distance.
-
-    The radius is set to distance_km / π so that a there-and-back loop
-    through the waypoint is roughly the right total length.
-    """
-    radius_m = (distance_km * 1000) / math.pi
-    bearings = [i * (360 / CANDIDATE_COUNT) for i in range(CANDIDATE_COUNT)]
-    return [_offset_point(lat, lng, radius_m, bearing) for bearing in bearings]
-
-
-def _offset_point(
-    lat: float,
-    lng: float,
-    distance_m: float,
-    bearing_deg: float,
-) -> tuple[float, float]:
-    """
-    Return a (lng, lat) point `distance_m` metres from (lat, lng) in the
-    direction of `bearing_deg` (0 = north, 90 = east, …).
-
-    Uses the flat-earth approximation — accurate enough for runs ≤ ~50 km.
-    """
-    bearing_rad = math.radians(bearing_deg)
-
-    delta_lat = (distance_m / _EARTH_RADIUS_M) * math.cos(bearing_rad)
-    delta_lng = (distance_m / _EARTH_RADIUS_M) * math.sin(bearing_rad) / math.cos(math.radians(lat))
-    
-    new_lat = lat + math.degrees(delta_lat)
-    new_lng = lng + math.degrees(delta_lng)
-    
-    return (new_lng, new_lat)  # ORS order
-
-
-# ---------------------------------------------------------------------------
-# Single route fetch (internal)
+# Single loop route fetch (internal)
 # ---------------------------------------------------------------------------
 
 async def _get_route(
     start: tuple[float, float],
-    waypoint: tuple[float, float],
+    seed: int,
+    distance_m: float,
     profile: str,
     include_elevation: bool,
 ) -> dict:
-    """
-    Request a single loop route from ORS: start → waypoint → start.
-
-    Raises ORSError on any failure so the gather() caller can handle it.
-    """
-    # Read at call time, not import time — ensures load_dotenv() has run first
     api_key = os.environ.get("ORS_API_KEY")
     if not api_key:
         raise ORSError("ORS_API_KEY environment variable is not set.")
 
-    coordinates = [list(start), list(waypoint), list(start)]
-
     payload: dict = {
-        "coordinates": coordinates,
+        "coordinates": [list(start)],
         "format": "geojson",
         "instructions": False,
+        "options": {
+            "round_trip": {
+                "length": distance_m,
+                "points": 5,      # number of waypoints ORS picks internally
+                "seed": seed,     # different seed = visually different route
+            }
+        }
     }
 
     if include_elevation:
