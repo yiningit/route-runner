@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, Fragment } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -15,9 +15,6 @@ import * as turf from "@turf/turf";
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
 
 
-/* =========================
-   📍 Fit EVERYTHING to map
-========================= */
 function FitToData({ currentLocation, routes, busyBusinesses }) {
   const map = useMap();
 
@@ -48,13 +45,6 @@ function FitToData({ currentLocation, routes, busyBusinesses }) {
 
 function getRouteColor(index) {
   return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
-}
-
-function MapClickHandler({ onClick }) {
-  useMapEvents({
-    click: () => onClick(),
-  });
-  return null;
 }
 
 function downloadGPX(route) {
@@ -108,9 +98,13 @@ function isNearRoute(light, route, threshold = 30) {
   return distance < threshold;
 }
 
-/* =========================
-   🌍 MAIN COMPONENT
-========================= */
+function MapClickHandler({ onClick }) {
+  useMapEvents({
+    click: () => onClick(),
+  });
+  return null;
+}
+
 export default function MapView({
   currentLocation,
   routes = [],
@@ -201,6 +195,7 @@ export default function MapView({
               {route.distance_km.toFixed(2) ?? 0} km
               {route.elevation_gain_m > 0 && <> · ↑{route.elevation_gain_m} m</>}
               <> · 🚦{route.traffic_light_count}</>
+              <> · 👥{route.crowd_score?.toFixed(2)}</>
 
               <div style={{ marginTop: 10 }}>
                 <button onClick={() => downloadGPX(route)}>

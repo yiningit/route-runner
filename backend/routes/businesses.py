@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 from services.places import load_places
-from services.scoring import compute_score, map_category
+from backend.services.crowd_scoring import compute_score, map_category
 
 router = APIRouter()
 

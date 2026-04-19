@@ -17,8 +17,10 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
+import pandas as pd
 
 from services.ors_client import get_routes_from_location
+from services.crowd_scoring import compute_route_popularity
 from models.schemas import RouteRequest, RouteResponse, RouteResult
 
 
@@ -39,6 +41,7 @@ class Preferences:
     target_distance_km: float
     avoid_lights: bool = True
     avoid_hills: bool = True
+    avoid_crowds: bool = True
 
 
 # --- Traffic lights data --------------------------------------------------
@@ -56,6 +59,15 @@ def load_traffic_lights(path: str | Path = _DEFAULT_LIGHTS_PATH) -> list[dict]:
             _LIGHTS_CACHE = json.load(f)
     return _LIGHTS_CACHE
 
+
+# --- Places of business data --------------------------------------------------
+
+_DEFAULT_PLACES_PATH = Path(__file__).resolve().parent.parent / "data" / "places_sample.parquet"
+
+def load_places():
+    df = pd.read_parquet(_DEFAULT_PLACES_PATH)
+    df = df.rename(columns={"latitude": "lat", "longitude": "lng"})
+    return df[["lat", "lng", "fsq_category_labels", "date_closed", "unresolved_flags"]].to_dict(orient="records")
 
 # --- Geo helpers ----------------------------------------------------------
 
@@ -134,6 +146,7 @@ def score_route(
     route: Route,
     prefs: Preferences,
     lights: list[dict],
+    places: list[dict],
 ) -> dict:
     """
     Compute all display metrics + a single penalty score.
@@ -146,21 +159,23 @@ def score_route(
     """
     distance_km = route.distance_m / 1000.0
     lights_count = count_lights_near_route(route.coordinates, lights)
-
-    print(f"[DEBUG ROUTE {route.id}] lights={lights_count}")   # DEBUG 
-
     ascent_m = route.ascent_m
     flow_score = distance_km / (lights_count + 1)  # km per light (display metric)
+    crowd_score = compute_route_popularity(route, places)
+
+    print(f"[DEBUG ROUTE {route.id}] lights={lights_count} | crowd_score={crowd_score}")   # DEBUG 
 
     # Weights — tweak as needed
     W_DISTANCE = 1.0
-    W_LIGHTS = 5.0 if prefs.avoid_lights else 0.5
+    W_LIGHTS = 5 if prefs.avoid_lights else 1
     W_ASCENT = 0.1 if prefs.avoid_hills else 0.01
+    W_CROWDS = 5 if prefs.avoid_crowds else 0.1
 
     penalty = (
         abs(distance_km - prefs.target_distance_km) * W_DISTANCE
         + lights_count * W_LIGHTS
         + ascent_m * W_ASCENT
+        + crowd_score * W_CROWDS
     )
 
     return {
@@ -170,6 +185,7 @@ def score_route(
         "distance_km": round(distance_km, 2),
         "lights": lights_count,
         "elevation_gain_m": round(ascent_m, 1),
+        "crowd_score": round(crowd_score, 3),
         "flow_score": round(flow_score, 2),
         "penalty": round(penalty, 3),
     }
@@ -181,6 +197,7 @@ def rank_routes(
     routes: list[Route],
     prefs: Preferences,
     lights: list[dict] | None = None,
+    places: list[dict] | None = None,
     top_n: int = 3,
 ) -> list[dict]:
     """
@@ -192,8 +209,12 @@ def rank_routes(
     """
     if lights is None:
         lights = load_traffic_lights()
+    
+    if places is None:
+        places = load_places()
+        print(type(places), len(places), type(places[0]))
 
-    scored = [score_route(r, prefs, lights) for r in routes]
+    scored = [score_route(r, prefs, lights, places) for r in routes]
     scored.sort(key=lambda x: x["penalty"])
     top = scored[:top_n]
 
@@ -203,7 +224,7 @@ def rank_routes(
     # Tag labels AFTER ranking. Priority order ensures each label used at most once.
     fewest_lights = min(top, key=lambda r: r["lights"])
     flattest = min(top, key=lambda r: r["elevation_gain_m"])
-    best_flow = max(top, key=lambda r: r["flow_score"])
+    best_flow = max(top, key=lambda r: r["flow_score"])   # ADD LEAST_CROWDS INSTEAD
 
     used_ids: set[str] = set()
     for r in top:
@@ -296,6 +317,7 @@ async def generate(request: RouteRequest) -> RouteResponse:
             distance_km=r["distance_km"],
             elevation_gain_m=r["elevation_gain_m"],
             traffic_light_count=r["lights"],
+            crowd_score = r["crowd_score"],
             flow_score=r["flow_score"],
             score=r["penalty"],
             label=r["label"],

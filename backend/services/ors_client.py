@@ -13,8 +13,6 @@ REQUEST_TIMEOUT = 15.0
 CANDIDATE_COUNT = 10
 MAX_ROUTES = 10
 
-# _EARTH_RADIUS_M = 6_371_000.0
-
 
 class ORSError(Exception):
     """Raised when ORS returns an error or times out."""
