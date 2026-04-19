@@ -16,6 +16,20 @@ L.Icon.Default.mergeOptions({
 function App() {
   const [routes, setRoutes] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [distance, setDistance] = useState(5); 
+
+  const snapPoints = [5, 10, 15, 20];
+
+  const handleSliderChange = (value) => {
+    const threshold = 1;
+
+    const snapped = snapPoints.find(
+      (point) => Math.abs(point - value) <= threshold
+    );
+
+    setDistance(snapped ?? value);
+  };
+
 
   // 🧭 Get user location — fall back to Sydney CBD if denied
   useEffect(() => {
@@ -40,7 +54,7 @@ function App() {
 
     const loadRoutes = async () => {
       try {
-        const data = await fetchRoutes(currentLocation.lat, currentLocation.lng);
+        const data = await fetchRoutes(currentLocation.lat, currentLocation.lng, distance);
         const converted = data.routes.map((route) => ({
           ...route,
           latLngs: route.coordinates  // already [lat, lng] from routing_service
@@ -69,17 +83,55 @@ function App() {
     };
 
     loadRoutes();
-  }, [currentLocation]);
+  }, [currentLocation, distance]);
 
   return (
     <>
       <h1 style={{ margin: '16px' }}>Route Runner MVP 🚴</h1>
 
+    {/* Slider UI */}
+    <div
+      style={{
+        position: 'absolute',
+        top: 60,
+        left: 10,
+        right: 10,
+        zIndex: 1000,
+        background: 'white',
+        padding: '10px 14px',
+        borderRadius: '10px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+      }}
+    >
+      <div style={{ marginBottom: 6 }}>
+        <strong>Distance: {distance} km</strong>
+      </div>
+
+      <input
+        type="range"
+        min="1"
+        max="25"
+        step="1"
+        value={distance}
+        onChange={(e) => setDistance(Number(e.target.value))} //smooth movement//
+        onMouseUp={(e) => handleSliderChange(Number(e.target.value))} //snap and fetch//
+        style={{ width: '100%' }}
+        list="tickmarks"
+      />
+
+      <datalist id="tickmarks">
+        <option value="5" />
+        <option value="10" />
+        <option value="15" />
+        <option value="20" />
+      </datalist>
+    </div>
+
       {/* Route legend */}
       <div
         style={{
           position: 'absolute',
-          top: 80,
+          top: 140,
           left: 10,
           zIndex: 1000,
           background: 'white',
