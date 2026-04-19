@@ -29,18 +29,6 @@ export default function RoutePanel({ distance, onDistanceChange, onFindRoutes, l
     return () => clearTimeout(timer);
   }, [error]);
 
-  // const legendItems = routes.length > 0
-  //   ? routes.map((route, index) => ({
-  //       color: ROUTE_COLORS[index] ?? '#3b82f6',
-  //       label: route.label,
-  //       key: route.id ?? index,
-  //     }))
-  //   : FALLBACK_LABELS.map((label, index) => ({
-  //       color: ROUTE_COLORS[index],
-  //       label,
-  //       key: index,
-  //     }));
-
   const legendItems = routes.length > 0
     ? routes.map((route, index) => ({
         color: ROUTE_COLORS[index] ?? '#3b82f6',

@@ -86,14 +86,15 @@ async def get_routes_from_location(
         ]
         avg_diff = sum(diffs) / sample_size
 
-        logger.warning(
-            "Route %d: %dm, midpoint=(%.4f,%.4f), half-similarity=%.6f %s",
-            i,
-            route["distance_m"],
-            midpoint[0], midpoint[1],
-            avg_diff,
-            "WARNING: LIKELY OUT-AND-BACK" if avg_diff < 0.00005 else "OK: looks like a loop"
-        )
+        # DEBUG
+        # logger.warning(
+        #     "Route %d: %dm, midpoint=(%.4f,%.4f), half-similarity=%.6f %s",
+        #     i,
+        #     route["distance_m"],
+        #     midpoint[0], midpoint[1],
+        #     avg_diff,
+        #     "WARNING: LIKELY OUT-AND-BACK" if avg_diff < 0.00005 else "OK: looks like a loop"
+        # )
 
     if not routes:
         raise ORSError("All candidate routes failed. Check your ORS API key and network.")
