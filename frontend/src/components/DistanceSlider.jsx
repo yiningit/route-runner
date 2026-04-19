@@ -1,22 +1,37 @@
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
+
 const KM_TO_MILES = 0.621371;
 
 const SNAP_POINTS_KM = [
-  1.6,   // 1 mile
-  3.2,   // 2 miles
-  5.0,   // 5k
-  8.0,   // 5 miles
-  10.0,  // 10k
-  16.1,  // 10 miles
-  21.1,  // half marathon
-  42.2,  // marathon
+  1.6,
+  3.2,
+  5.0,
+  8.0,
+  10.0,
+  16.1,
+  21.1,
+  42.2,
 ];
 
 export const SLIDER_MIN = 1;
 export const SLIDER_MAX = 42.2;
 const SNAP_THRESHOLD_KM = 0.8;
 
-const KM_LABELS = ['42', '21', '16', '10', '5', '3', '1.6'];
-const MILE_LABELS = ['26mi', '13mi', '10mi', '6mi', '3mi', '2mi', '1mi'];
+const LABEL_POINTS = [
+  { km: 1.6,  mi: '1mi'  },
+  { km: 3.2,  mi: '2mi'  },
+  { km: 5.0,  mi: '3.1mi'  },
+  { km: 8.0,  mi: '5mi'  },
+  { km: 10.0, mi: '6.2mi'  },
+  { km: 16.1, mi: '10mi' },
+  { km: 21.1, mi: '13mi' },
+  { km: 42.2, mi: '26mi' },
+];
+
+function toPercent(km) {
+  return 100 - ((km - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
+}
 
 export function snapDistance(value) {
   const nearest = SNAP_POINTS_KM.find(
@@ -34,39 +49,22 @@ export function formatMiles(km) {
   return `${miles % 1 === 0 ? miles : miles.toFixed(1)} mi`;
 }
 
+function getLabelFontSize(km) {
+  if (km >= 21) return 13;   // marathon / half marathon
+  if (km >= 10) return 12;   // double digits
+  if (km >= 5) return 11;    // mid distances
+  return 10;                 // small distances
+}
 export default function DistanceSlider({ distance, onDistanceChange }) {
   return (
     <>
       <style>{`
-        .vertical-slider {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          width: 30px;
-          cursor: pointer;
-          flex-shrink: 0;
-          -webkit-appearance: slider-vertical;
-          appearance: auto;
-          flex: 1;
-        }
-        .vertical-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          margin-left: -6px;
-        }
-        .vertical-slider::-webkit-slider-runnable-track {
-          width: 6px;
-          background: #ddd;
-          border-radius: 3px;
-        }
+        .rc-slider-mark { display: none; }
+        .rc-slider-dot  { display: none; }
       `}</style>
 
       {/* Distance readout */}
-      <div style={{ textAlign: 'center', marginBottom: 8 }}>
+      <div style={{ textAlign: 'center', marginBottom: 12 }}>
         <span style={{ fontWeight: '600', fontSize: '15px' }}>{formatKm(distance)}</span>
         <span style={{ color: '#888', fontSize: '12px', marginLeft: 6 }}>
           {formatMiles(distance)}
@@ -74,44 +72,64 @@ export default function DistanceSlider({ distance, onDistanceChange }) {
       </div>
 
       {/* Slider row */}
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, minHeight: 0 }}>
+      <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', alignItems: 'stretch' }}>
 
-        {/* km labels (left) */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          fontSize: 10,
-          color: '#555',
-          textAlign: 'right',
-          flexShrink: 0,
-        }}>
-          {KM_LABELS.map((label) => <span key={label}>{label}</span>)}
+        {/* km labels — left */}
+        <div style={{ position: 'relative', width: 28, flexShrink: 0 }}>
+          {LABEL_POINTS.map(({ km }) => (
+            <span key={km} style={{
+              position: 'absolute',
+              right: 4,
+              top: `${toPercent(km)}%`,
+              transform: 'translateY(-50%)',
+              fontSize: getLabelFontSize(km),
+              color: '#555',
+              whiteSpace: 'nowrap',
+            }}>
+              {km}km
+            </span>
+          ))}
         </div>
 
-        {/* Vertical slider */}
-        <input
-          className="vertical-slider"
-          type="range"
-          min={SLIDER_MIN}
-          max={SLIDER_MAX}
-          step="0.1"
-          value={distance}
-          onChange={(e) => onDistanceChange(snapDistance(parseFloat(e.target.value)))}
-        />
-
-        {/* miles labels (right) */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          fontSize: 10,
-          color: '#888',
-          textAlign: 'left',
-          flexShrink: 0,
-        }}>
-          {MILE_LABELS.map((label) => <span key={label}>{label}</span>)}
+        {/* Slider */}
+        <div style={{ flex: 1, paddingTop: 8, paddingBottom: 8 }}>
+          <Slider
+            vertical
+            min={SLIDER_MIN}
+            max={SLIDER_MAX}
+            step={0.1}
+            value={distance}
+            onChange={(val) => onDistanceChange(snapDistance(val))}
+            style={{ height: '100%' }}
+            trackStyle={{ backgroundColor: '#3b82f6', width: 6 }}
+            railStyle={{ backgroundColor: '#ddd', width: 6 }}
+            handleStyle={{
+              backgroundColor: '#3b82f6',
+              borderColor: '#3b82f6',
+              width: 18,
+              height: 18,
+              marginLeft: -6,
+            }}
+          />
         </div>
+
+        {/* miles labels — right */}
+        <div style={{ position: 'relative', width: 32, flexShrink: 0 }}>
+          {LABEL_POINTS.map(({ km, mi }) => (
+            <span key={km} style={{
+              position: 'absolute',
+              left: 4,
+              top: `${toPercent(km)}%`,
+              transform: 'translateY(-50%)',
+              fontSize: getLabelFontSize(km) - 1,
+              color: '#aaa',
+              whiteSpace: 'nowrap',
+            }}>
+              {mi}
+            </span>
+          ))}
+        </div>
+
       </div>
     </>
   );
