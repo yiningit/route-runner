@@ -182,7 +182,7 @@ export default function MapView({
               weight:
                 selectedRouteId === route.id
                   ? 10
-                  : index === 0 ? 8 : 5,
+                  : 5,
               opacity:
                 selectedRouteId && selectedRouteId !== route.id ? 0.4 : 1,
             }}
