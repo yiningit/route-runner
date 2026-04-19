@@ -7,17 +7,13 @@ import httpx
 logger = logging.getLogger(__name__)
 
 ORS_BASE_URL = "https://api.openrouteservice.org/v2"
-ORS_API_KEY = os.environ.get("ORS_API_KEY")
 
 PROFILE_FOOT_WALKING = "foot-walking"
 REQUEST_TIMEOUT = 15.0
 
-# How many candidate routes to attempt. Some may fail (no road nearby, etc.)
-# so we overshoot slightly and trim to MAX_ROUTES afterwards.
 CANDIDATE_COUNT = 10
 MAX_ROUTES = 10
 
-# Earth radius used for offset calculations (metres)
 _EARTH_RADIUS_M = 6_371_000.0
 
 
@@ -100,9 +96,7 @@ def _generate_waypoints(
     through the waypoint is roughly the right total length.
     """
     radius_m = (distance_km * 1000) / math.pi
-
     bearings = [i * (360 / CANDIDATE_COUNT) for i in range(CANDIDATE_COUNT)]
-
     return [_offset_point(lat, lng, radius_m, bearing) for bearing in bearings]
 
 
@@ -122,10 +116,10 @@ def _offset_point(
 
     delta_lat = (distance_m / _EARTH_RADIUS_M) * math.cos(bearing_rad)
     delta_lng = (distance_m / _EARTH_RADIUS_M) * math.sin(bearing_rad) / math.cos(math.radians(lat))
-
+    
     new_lat = lat + math.degrees(delta_lat)
     new_lng = lng + math.degrees(delta_lng)
-
+    
     return (new_lng, new_lat)  # ORS order
 
 
@@ -144,7 +138,9 @@ async def _get_route(
 
     Raises ORSError on any failure so the gather() caller can handle it.
     """
-    if not ORS_API_KEY:
+    # Read at call time, not import time — ensures load_dotenv() has run first
+    api_key = os.environ.get("ORS_API_KEY")
+    if not api_key:
         raise ORSError("ORS_API_KEY environment variable is not set.")
 
     coordinates = [list(start), list(waypoint), list(start)]
@@ -160,7 +156,7 @@ async def _get_route(
         payload["extra_info"] = ["steepness"]
 
     headers = {
-        "Authorization": ORS_API_KEY,
+        "Authorization": api_key,
         "Content-Type": "application/json",
         "Accept": "application/json, application/geo+json",
     }
