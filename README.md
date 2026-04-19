@@ -66,7 +66,20 @@ cd route-runner
 # Frontend
 cd frontend
 npm install
- 
+```
+
+You may wish to create and activate a virtual environment to prevent package conflicts.
+
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+# Mac/Linux
+source .venv/bin/activate
+```
+
+```bash
 # Backend (from project root)
 cd backend
 pip install -r requirements.txt
