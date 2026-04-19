@@ -67,34 +67,33 @@ async def get_routes_from_location(
 
 
     # Debug for routes
-    for i, route in enumerate(routes):
-        coords = route["geojson"]["coordinates"]
-        mid = len(coords) // 2
+    # for i, route in enumerate(routes):
+    #     coords = route["geojson"]["coordinates"]
+    #     mid = len(coords) // 2
 
-        midpoint = coords[mid]
-        first_half = coords[:mid]
-        second_half = coords[mid:]
+    #     midpoint = coords[mid]
+    #     first_half = coords[:mid]
+    #     second_half = coords[mid:]
 
-        # Check how similar the two halves are by comparing a sample of points
-        sample_size = min(5, len(first_half))
-        forward = first_half[:sample_size]
-        backward = list(reversed(second_half))[:sample_size]
+    #     # Check how similar the two halves are by comparing a sample of points
+    #     sample_size = min(5, len(first_half))
+    #     forward = first_half[:sample_size]
+    #     backward = list(reversed(second_half))[:sample_size]
 
-        diffs = [
-            abs(forward[j][0] - backward[j][0]) + abs(forward[j][1] - backward[j][1])
-            for j in range(sample_size)
-        ]
-        avg_diff = sum(diffs) / sample_size
+    #     diffs = [
+    #         abs(forward[j][0] - backward[j][0]) + abs(forward[j][1] - backward[j][1])
+    #         for j in range(sample_size)
+    #     ]
+    #     avg_diff = sum(diffs) / sample_size
 
-        # DEBUG
-        # logger.warning(
-        #     "Route %d: %dm, midpoint=(%.4f,%.4f), half-similarity=%.6f %s",
-        #     i,
-        #     route["distance_m"],
-        #     midpoint[0], midpoint[1],
-        #     avg_diff,
-        #     "WARNING: LIKELY OUT-AND-BACK" if avg_diff < 0.00005 else "OK: looks like a loop"
-        # )
+    #     logger.warning(
+    #         "Route %d: %dm, midpoint=(%.4f,%.4f), half-similarity=%.6f %s",
+    #         i,
+    #         route["distance_m"],
+    #         midpoint[0], midpoint[1],
+    #         avg_diff,
+    #         "WARNING: LIKELY OUT-AND-BACK" if avg_diff < 0.00005 else "OK: looks like a loop"
+    #     )
 
     if not routes:
         raise ORSError("All candidate routes failed. Check your ORS API key and network.")
