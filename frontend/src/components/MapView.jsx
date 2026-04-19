@@ -14,9 +14,6 @@ import * as turf from "@turf/turf";
 
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
 
-function getRouteColor(index) {
-  return ROUTE_COLORS[index] ?? '#3b82f6';
-}
 
 function FitToData({ currentLocation, routes, busyBusinesses }) {
   const map = useMap();
@@ -44,6 +41,10 @@ function FitToData({ currentLocation, routes, busyBusinesses }) {
   }, [map, currentLocation, routes, busyBusinesses]);
 
   return null;
+}
+
+function getRouteColor(index) {
+  return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
 }
 
 
@@ -86,6 +87,8 @@ function downloadGPX(route) {
    🚦 Traffic Light Detection
 ========================= */
 function isNearRoute(light, route, threshold = 30) {
+  if (!route || route.length < 2) return false; 
+
   const point = turf.point([light.lng, light.lat]);
   const line = turf.lineString(route.map(([lat, lng]) => [lng, lat]));
 
@@ -119,9 +122,11 @@ export default function MapView({
   const routeTrafficLights = useMemo(() => {
     return routes.map(route => ({
       routeId: route.id,
-      lights: trafficLights.filter(light =>
+      lights: route.latLngs
+        ? trafficLights.filter(light =>
         isNearRoute(light, route.latLngs)
-      ),
+        )
+      : [],
     }));
   }, [routes, trafficLights]);
 
@@ -188,7 +193,7 @@ export default function MapView({
           >
             <Popup>
               <strong>{route.label}</strong><br />
-              {route.distance_km.toFixed(2)} km
+              {route.distance_km.toFixed(2) ?? 0} km
               {route.elevation_gain_m > 0 && <> · ↑{route.elevation_gain_m} m</>}
               <> · 🚦{route.traffic_light_count}</>
 
