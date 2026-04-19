@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
 const ROUTE_LABELS = ['🟢 Best', '🟡 Good', '🔴 Okay'];
@@ -58,7 +58,7 @@ export default function MapView({ currentLocation, routes = [] }) {
 
       {/* Routes — each rendered as a dark drop-shadow + coloured line */}
       {routes.map((route, index) => (
-        <div key={route.id ?? index}>
+        <React.Fragment key={route.id ?? index}>
           {/* Drop shadow */}
           <Polyline
             positions={route.latLngs}
@@ -80,13 +80,13 @@ export default function MapView({ currentLocation, routes = [] }) {
             <Popup>
               <strong>{getRouteLabel(index)}</strong>
               <br />
-              {(route.distance_m / 1000).toFixed(2)} km
+              {route.distance_km.toFixed(2)} km
               {route.elevation_gain_m > 0 && (
                 <> · ↑{route.elevation_gain_m} m</>
               )}
             </Popup>
           </Polyline>
-        </div>
+        </React.Fragment>
       ))}
     </MapContainer>
   );

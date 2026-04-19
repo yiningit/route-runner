@@ -17,8 +17,9 @@ function App() {
   const [routes, setRoutes] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
 
-  // 🧭 Get user location — fall back to Sydney CBD if denied
+  // Get user location — fall back to Sydney CBD if denied
   useEffect(() => {
+    if (!navigator.geolocation) return;   // guards against no exposed geolocation
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         console.log('Geolocation success', pos);
@@ -60,9 +61,7 @@ function App() {
           console.groupEnd();
         });
         console.groupEnd();
-
-
-
+        
       } catch (err) {
         console.error('Error fetching routes:', err);
       }
