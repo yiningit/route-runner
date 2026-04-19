@@ -16,7 +16,8 @@ export default function useRoutes(currentLocation) {
       const converted = data.routes.map((route) => ({
         ...route,
         latLngs: route.coordinates, // already [lat, lng] from routing_service
-      }));
+        elevationProfile: route.elevation_profile,
+    }));
       setRoutes(converted);
 
       // Debug console output

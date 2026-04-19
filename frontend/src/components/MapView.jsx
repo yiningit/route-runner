@@ -35,7 +35,6 @@ function getRouteColor(index) {
 }
 
 
-//  WHY IS THE TABBING SO WEIRD HERE??
 function downloadGPX(route) {
   const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="RunRoutes">
@@ -44,9 +43,11 @@ function downloadGPX(route) {
   <trkseg>`;
 
   const gpxPoints = route.latLngs
-    .map(([lat, lng, ele]) => {
+    .map(([lat, lng], i) => {
+      const ele = route.elevationProfile?.[i] ?? 0;
+
       return `<trkpt lat="${lat}" lon="${lng}">
-    <ele>${ele ?? 0}</ele>
+    <ele>${ele}</ele>
   </trkpt>`;
     })
     .join("");

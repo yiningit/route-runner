@@ -1,5 +1,4 @@
 import asyncio
-import math
 import os
 import logging
 import httpx
@@ -14,7 +13,7 @@ REQUEST_TIMEOUT = 15.0
 CANDIDATE_COUNT = 10
 MAX_ROUTES = 10
 
-_EARTH_RADIUS_M = 6_371_000.0
+# _EARTH_RADIUS_M = 6_371_000.0
 
 
 class ORSError(Exception):
@@ -53,7 +52,6 @@ async def get_routes_from_location(
         Failed/unreachable candidates are silently dropped.
     """
     start = (lng, lat)   # ORS uses (lng, lat) order
-    # waypoints = _generate_waypoints(lat, lng, distance_km)
 
     # Fire all ORS requests concurrently — much faster than sequential
     tasks = [
@@ -195,11 +193,19 @@ def _parse_ors_response(data: dict) -> dict:
         props = feature["properties"]
         summary = props["summary"]
 
+        coords = data["features"][0]["geometry"]["coordinates"]
+
+        elevation_profile = [
+            float(c[2]) if len(c) > 2 else 0.0
+            for c in coords
+        ]
+
         return {
             "geojson": geometry,
             "distance_m": summary["distance"],
             "duration_s": summary["duration"],
             "elevation_gain_m": _extract_elevation_gain(geometry),
+            "elevation_profile": elevation_profile,   # ✅ ADD THIS
             "waypoints": props.get("way_points", []),
         }
 

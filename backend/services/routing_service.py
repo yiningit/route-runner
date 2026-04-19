@@ -29,6 +29,7 @@ class Route:
     """Normalized route. Populate from ORS via `route_from_ors_feature()`."""
     id: str
     coordinates: list[tuple[float, float]]   # [[lat, lng], ...] — Leaflet
+    elevation_profile: list[float]
     distance_m: float
     ascent_m: float                          # total climbing (from ORS `ascent`)
 
@@ -37,7 +38,7 @@ class Route:
 class Preferences:
     target_distance_km: float
     avoid_lights: bool = True
-    avoid_hills: bool = False
+    avoid_hills: bool = True
 
 
 # --- Traffic lights data --------------------------------------------------
@@ -45,10 +46,7 @@ class Preferences:
 # Cache so we don't re-read the 513 KB JSON on every request
 _LIGHTS_CACHE: list[dict] | None = None
 
-# Default path — resolves relative to this file, so it works no matter
-# where the FastAPI app is launched from.
 _DEFAULT_LIGHTS_PATH = Path(__file__).resolve().parent.parent / "data" / "traffic_lights.json"
-
 
 def load_traffic_lights(path: str | Path = _DEFAULT_LIGHTS_PATH) -> list[dict]:
     """Load NSW traffic lights JSON once and cache in memory."""
@@ -148,13 +146,16 @@ def score_route(
     """
     distance_km = route.distance_m / 1000.0
     lights_count = count_lights_near_route(route.coordinates, lights)
+
+    print(f"[DEBUG ROUTE {route.id}] lights={lights_count}")   # DEBUG 
+
     ascent_m = route.ascent_m
     flow_score = distance_km / (lights_count + 1)  # km per light (display metric)
 
     # Weights — tweak as needed
     W_DISTANCE = 1.0
-    W_LIGHTS = 3.0 if prefs.avoid_lights else 0.5
-    W_ASCENT = 0.05 if prefs.avoid_hills else 0.01
+    W_LIGHTS = 5.0 if prefs.avoid_lights else 0.5
+    W_ASCENT = 0.1 if prefs.avoid_hills else 0.01
 
     penalty = (
         abs(distance_km - prefs.target_distance_km) * W_DISTANCE
@@ -165,6 +166,7 @@ def score_route(
     return {
         "id": route.id,
         "coordinates": route.coordinates,
+        "elevation_profile": route.elevation_profile,
         "distance_km": round(distance_km, 2),
         "lights": lights_count,
         "elevation_gain_m": round(ascent_m, 1),
@@ -228,6 +230,7 @@ def route_from_ors_feature(feature: dict, route_id: str) -> Route:
     Expects `elevation=true` in the ORS request so `properties.ascent` is present.
     """
     coords_3d = feature["geometry"]["coordinates"]
+
     latlng = [(float(c[1]), float(c[0])) for c in coords_3d]
 
     elevation_profile = [
