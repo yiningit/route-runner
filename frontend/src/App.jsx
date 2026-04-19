@@ -62,14 +62,14 @@ function App() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)',
+          background: 'linear-gradient(180deg, #d0d7dd 0%, #d0d7dd 100%)',
           fontFamily: 'sans-serif',
           textAlign: 'center',
           padding: '24px',
         }}
       >
         <img
-          src="/route-runner-logo.png"
+          src="/public/route-runner-logo.jpeg"
           alt="Route Runner"
           style={{
             height: 60,   // 🔥 increased from 38 → 60
@@ -79,7 +79,7 @@ function App() {
         />
 
         <img
-          src="/big%20cat%20running%20GIF.gif"
+          src="/public/big-cat-running.gif"
           alt="Loading"
           style={{
             width: 220,
@@ -110,7 +110,7 @@ function App() {
           transform: 'translateX(-50%)',
           zIndex: 1300,
           padding: '16px 28px',
-          background: '#d9d9d9',   // 👈 MATCHES LOGO
+          background: '#d0d7dd',
           borderRadius: '999px',
           boxShadow: '0 6px 20px rgba(0,0,0,0.12)',
         }}
