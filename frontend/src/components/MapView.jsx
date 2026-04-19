@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import React, { useEffect } from 'react';
 
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
-const ROUTE_LABELS = ['🟢 Best', '🟡 Good', '🔴 Okay'];
+// const ROUTE_LABELS = ['Best', 'Good', 'Okay'];
 
 /**
  * Fits the map to all route coordinates once routes load,
@@ -29,9 +29,9 @@ function getRouteColor(index) {
   return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
 }
 
-function getRouteLabel(index) {
-  return ROUTE_LABELS[index] ?? `Route ${index + 1}`;
-}
+// function getRouteLabel(index) {
+//   return ROUTE_LABELS[index] ?? `Route ${index + 1}`;
+// }
 
 export default function MapView({ currentLocation, routes = [] }) {
   const defaultCenter = [-33.8688, 151.2093]; // Sydney fallback
@@ -78,12 +78,13 @@ export default function MapView({ currentLocation, routes = [] }) {
             }}
           >
             <Popup>
-              <strong>{getRouteLabel(index)}</strong>
+              <strong>{route.label}</strong>
               <br />
               {route.distance_km.toFixed(2)} km
               {route.elevation_gain_m > 0 && (
                 <> · ↑{route.elevation_gain_m} m</>
               )}
+              <> · 🚦{route.traffic_light_count}</>
             </Popup>
           </Polyline>
         </React.Fragment>

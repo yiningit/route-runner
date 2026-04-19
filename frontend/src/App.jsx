@@ -16,6 +16,7 @@ L.Icon.Default.mergeOptions({
 function App() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [distance, setDistance] = useState(5);
+  const { routes, loading, error, findRoutes } = useRoutes(currentLocation);
 
   // Get user location — fall back to Sydney CBD if denied
   useEffect(() => {
@@ -35,15 +36,15 @@ function App() {
     );
   }, []);
 
-  const routes = useRoutes(currentLocation, distance);
-
   return (
     <>
-      <h1 style={{ margin: '16px' }}>Route Runner MVP 🚴</h1>
-
       <RoutePanel
         distance={distance}
         onDistanceChange={setDistance}
+        onFindRoutes={() => findRoutes(distance)}
+        loading={loading}
+        error={error}
+        routes={routes}
       />
 
       <div style={{ height: '100vh', width: '100%' }}>
