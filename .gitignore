@@ -12,9 +12,10 @@ dist
 dist-ssr
 *.local
 
-# Env files
-.env
-.env.*
+# Env files & loaded data
+backend/.env
+frontend/.env
+backend/data/places_sample.parquet
 
 # Editor directories and files
 .vscode/*
