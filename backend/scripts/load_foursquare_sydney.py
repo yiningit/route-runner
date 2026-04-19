@@ -6,7 +6,7 @@ import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")   # always finds backend/.env
 
 FSQ_API_KEY = os.environ.get("FSQ_API_KEY")
 if not FSQ_API_KEY:

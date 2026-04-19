@@ -6,3 +6,4 @@ DATA_PATH = BASE_DIR / "data" / "places_sample.parquet"
 
 def load_places():
     return pd.read_parquet(DATA_PATH).copy()
+## IS THIS IN THE RIGHT PLACE?
