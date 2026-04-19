@@ -14,9 +14,6 @@ import * as turf from "@turf/turf";
 
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
 
-function getRouteColor(index) {
-  return ROUTE_COLORS[index] ?? '#3b82f6';
-}
 
 /* =========================
    📍 Fit EVERYTHING to map
@@ -53,6 +50,12 @@ function getRouteColor(index) {
   return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
 }
 
+function MapClickHandler({ onClick }) {
+  useMapEvents({
+    click: () => onClick(),
+  });
+  return null;
+}
 
 function downloadGPX(route) {
   const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
