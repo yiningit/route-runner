@@ -69,7 +69,7 @@ function App() {
         }}
       >
         <img
-          src="/public/route-runner-logo.jpeg"
+          src="/route-runner-logo.jpeg"
           alt="Route Runner"
           style={{
             height: 60,   // 🔥 increased from 38 → 60
@@ -79,7 +79,7 @@ function App() {
         />
 
         <img
-          src="/public/big-cat-running.gif"
+          src="/big-cat-running.gif"
           alt="Loading"
           style={{
             width: 220,
