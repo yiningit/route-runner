@@ -19,11 +19,6 @@ class RouteRequest(BaseModel):
             raise ValueError("distance_km must be at least 0.5 km")
         return self
 
-    @property
-    def start_coord(self) -> tuple[float, float]:
-        """Returns (longitude, latitude) as expected by ORS."""
-        return (self.start_lng, self.start_lat)
-
 
 # ---------------------------------------------------------------------------
 # Response — field names match routing_service.score_route() output exactly
