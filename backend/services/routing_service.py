@@ -163,9 +163,7 @@ def score_route(
     flow_score = distance_km / (lights_count + 1)  # km per light (display metric)
     crowd_score = compute_route_popularity(route, places)
 
-    print(f"[DEBUG ROUTE {route.id}] lights={lights_count} | crowd_score={crowd_score}")   # DEBUG 
-
-    # Weights — tweak as needed
+    # Weights
     W_DISTANCE = 1.0
     W_LIGHTS = 5 if prefs.avoid_lights else 1
     W_ASCENT = 0.1 if prefs.avoid_hills else 0.01
@@ -177,6 +175,8 @@ def score_route(
         + ascent_m * W_ASCENT
         + crowd_score * W_CROWDS
     )
+
+    print(f"[DEBUG ROUTE {route.id}] lights={lights_count} | crowd_score={crowd_score} | penalty={penalty}")   # DEBUG 
 
     return {
         "id": route.id,
@@ -212,7 +212,6 @@ def rank_routes(
     
     if places is None:
         places = load_places()
-        print(type(places), len(places), type(places[0]))
 
     scored = [score_route(r, prefs, lights, places) for r in routes]
     scored.sort(key=lambda x: x["penalty"])
@@ -220,22 +219,22 @@ def rank_routes(
 
     if not top:
         return top
-
+    
     # Tag labels AFTER ranking. Priority order ensures each label used at most once.
     fewest_lights = min(top, key=lambda r: r["lights"])
     flattest = min(top, key=lambda r: r["elevation_gain_m"])
-    best_flow = max(top, key=lambda r: r["flow_score"])   # ADD LEAST_CROWDS INSTEAD
+    least_crowds = min(top, key=lambda r: r["crowd_score"])
 
     used_ids: set[str] = set()
     for r in top:
         if r["id"] == fewest_lights["id"] and r["id"] not in used_ids:
             r["label"] = "Fewest Lights"
+        elif r["id"] == least_crowds["id"] and r["id"] not in used_ids:
+            r["label"] = "Least Crowds"
         elif r["id"] == flattest["id"] and r["id"] not in used_ids:
             r["label"] = "Flattest"
-        elif r["id"] == best_flow["id"] and r["id"] not in used_ids:
-            r["label"] = "Best Flow"
         else:
-            r["label"] = "Alternative"
+            r["label"] = "Good Balance"
         used_ids.add(r["id"])
 
     return top

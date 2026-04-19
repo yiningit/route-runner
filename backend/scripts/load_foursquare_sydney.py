@@ -23,14 +23,17 @@ SYDNEY_SW = "-34.2,150.5"   # south-west corner
 
 # Places API integer category IDs — https://docs.foursquare.com/data-products/docs/categories
 CATEGORIES = {
-    "cafe":       "4bf58dd8d48988d16d941735",
-    "restaurant": "4d4b7105d754a06374d81259",
-    "bar":        "4bf58dd8d48988d116941735",
-    "gym":        "4bf58dd8d48988d176941735",
-    "retail":     "4d4b7105d754a06378d81259",
-    "grocery":    "4bf58dd8d48988d118951735",
-    "outdoor":    "4d4b7105d754a06377d81259",
+    "cafe":        "4bf58dd8d48988d16d941735",  # strong morning/lunch footpath traffic
+    "restaurant":  "4d4b7105d754a06374d81259",  # strong lunch/dinner footpath traffic
+    "bar":         "4bf58dd8d48988d116941735",  # strong evening signal
+    "nightclub":   "4bf58dd8d48988d11f941735",  # late night signal, distinct from bars
+    "outdoor":     "4d4b7105d754a06377d81259",  # parks, beaches, reserves
+    "transit":     "63be6904847c3692a84b9c28",  # stations, transport hubs — strongest pedestrian density predictor
+    "school":      "63be6904847c3692a84b9ba1",  # school zone surges morning and afternoon
+    "market":      "4bf58dd8d48988d1fa941735",  # weekend morning markets
+    "event_venue": "63be6904847c3692a84b9bb7",  # stadiums, arenas, theatres
 }
+
 
 HEADERS = {
     "Authorization": f"Bearer {FSQ_API_KEY}",

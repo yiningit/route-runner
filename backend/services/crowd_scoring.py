@@ -26,33 +26,68 @@ CATEGORY_HOUR_SCORES = {
         "evening": 0.90,
         "night": 1.00,
     },
-    "gym": {
-        "morning": 0.90,
-        "lunch": 0.30,
-        "afternoon": 0.25,
-        "evening": 0.95,
-        "night": 0.15,
-    },
-    "retail": {
-        "morning": 0.35,
-        "lunch": 0.70,
-        "afternoon": 0.85,
-        "evening": 0.45,
-        "night": 0.05,
-    },
-    "grocery": {
-        "morning": 0.55,
-        "lunch": 0.60,
-        "afternoon": 0.70,
-        "evening": 0.65,
-        "night": 0.15,
-    },
+    # "gym": {
+    #     "morning": 0.90,
+    #     "lunch": 0.30,
+    #     "afternoon": 0.25,
+    #     "evening": 0.95,
+    #     "night": 0.15,
+    # },
+    # "retail": {
+    #     "morning": 0.35,
+    #     "lunch": 0.70,
+    #     "afternoon": 0.85,
+    #     "evening": 0.45,
+    #     "night": 0.05,
+    # },
+    # "grocery": {
+    #     "morning": 0.55,
+    #     "lunch": 0.60,
+    #     "afternoon": 0.70,
+    #     "evening": 0.65,
+    #     "night": 0.15,
+    # },
     "outdoor": {
         "morning": 0.60,
         "lunch": 0.75,
         "afternoon": 0.85,
         "evening": 0.40,
         "night": 0.05,
+    },
+    "transit": {
+        "morning":   1.00,  # peak commute
+        "lunch":     0.50,
+        "afternoon": 0.60,
+        "evening":   0.90,  # peak commute return
+        "night":     0.20,
+    },
+    "school": {
+        "morning":   0.90,  # drop-off
+        "lunch":     0.30,
+        "afternoon": 0.85,  # pick-up
+        "evening":   0.05,
+        "night":     0.00,
+    },
+    "event_venue": {
+        "morning":   0.10,
+        "lunch":     0.20,
+        "afternoon": 0.40,
+        "evening":   0.95,  # shows, games
+        "night":     0.70,
+    },
+    "market": {
+        "morning":   0.90,  # markets peak early
+        "lunch":     0.60,
+        "afternoon": 0.20,
+        "evening":   0.00,
+        "night":     0.00,
+    },
+    "nightclub": {
+        "morning":   0.00,
+        "lunch":     0.00,
+        "afternoon": 0.05,
+        "evening":   0.50,
+        "night":     1.00,
     },
     "other": {
         "morning": 0.20,
@@ -95,15 +130,25 @@ def map_category(labels) -> str:
         return "restaurant"
     if "bar" in text or "pub" in text or "nightlife" in text or "brewery" in text or "cocktail" in text:
         return "bar"
-    if "gym" in text or "fitness" in text or "yoga" in text or "pilates" in text:
-        return "gym"
-    if "shop" in text or "store" in text or "retail" in text or "boutique" in text:
-        return "retail"
-    if "supermarket" in text or "grocery" in text or "convenience" in text:
-        return "grocery"
+    # if "gym" in text or "fitness" in text or "yoga" in text or "pilates" in text:
+    #     return "gym"
+    # if "shop" in text or "store" in text or "retail" in text or "boutique" in text:
+    #     return "retail"
+    # if "supermarket" in text or "grocery" in text or "convenience" in text:
+    #     return "grocery"
     if "park" in text or "beach" in text or "garden" in text or "trail" in text or "outdoor" in text:
         return "outdoor"
-
+    if "transit" in text or "train" in text or "bus station" in text or "metro" in text:
+        return "transit"
+    if "school" in text or "university" in text or "college" in text:
+        return "school"
+    if "stadium" in text or "arena" in text or "theatre" in text or "concert" in text:
+        return "event_venue"
+    if "market" in text:
+        return "market"
+    if "nightclub" in text or "club" in text or "night club" in text:
+        return "nightclub"
+    
     return "other"
 
 

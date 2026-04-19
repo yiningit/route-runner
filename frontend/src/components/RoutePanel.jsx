@@ -29,17 +29,30 @@ export default function RoutePanel({ distance, onDistanceChange, onFindRoutes, l
     return () => clearTimeout(timer);
   }, [error]);
 
+  // const legendItems = routes.length > 0
+  //   ? routes.map((route, index) => ({
+  //       color: ROUTE_COLORS[index] ?? '#3b82f6',
+  //       label: route.label,
+  //       key: route.id ?? index,
+  //     }))
+  //   : FALLBACK_LABELS.map((label, index) => ({
+  //       color: ROUTE_COLORS[index],
+  //       label,
+  //       key: index,
+  //     }));
+
   const legendItems = routes.length > 0
     ? routes.map((route, index) => ({
         color: ROUTE_COLORS[index] ?? '#3b82f6',
         label: route.label,
-        key: route.id ?? index,
+        key: index + 1,   // given array is already sorted by penalty / best overall
       }))
     : FALLBACK_LABELS.map((label, index) => ({
         color: ROUTE_COLORS[index],
         label,
-        key: index,
+        key: index + 1,
       }));
+
 
   return (
     <div
@@ -90,11 +103,12 @@ export default function RoutePanel({ distance, onDistanceChange, onFindRoutes, l
 
       {/* Legend */}
       <div style={{ fontWeight: 'bold', marginBottom: 6, textAlign: 'center' }}>
-        Route Ranking
+        Overall Route Ranking
       </div>
 
       {legendItems.map((item) => (
         <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+          {item.key}.
           <Dot color={item.color} />
           {item.label}
         </div>
