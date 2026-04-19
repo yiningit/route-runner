@@ -1,9 +1,9 @@
-import L from 'leaflet';
+import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import React, { useEffect } from 'react';
+import L from 'leaflet';
+import * as turf from "@turf/turf";
 
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
-// const ROUTE_LABELS = ['Best', 'Good', 'Okay'];
 
 /**
  * Fits the map to all route coordinates once routes load,
@@ -30,20 +30,44 @@ function getRouteColor(index) {
   return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
 }
 
-// function getRouteLabel(index) {
-//   return ROUTE_LABELS[index] ?? `Route ${index + 1}`;
-// }
-
 export default function MapView({ currentLocation, routes = [], trafficLights = [] }) {
   const defaultCenter = [-33.8688, 151.2093]; // Sydney fallback
 
-  function isNearRoute(light, route, threshold = 0.003) {
-    return route.some(([lat, lng]) => {
-      const dLat = lat - light.lat;
-      const dLng = lng - light.lng;
-      return Math.sqrt(dLat * dLat + dLng * dLng) < threshold;
+  // function getDistanceMeters(lat1, lng1, lat2, lng2) {
+  //   const R = 6371000; // Earth radius in meters
+  //   const toRad = (deg) => (deg * Math.PI) / 180;
+
+  //   const dLat = toRad(lat2 - lat1);
+  //   const dLng = toRad(lng2 - lng1);
+
+  //   const a =
+  //     Math.sin(dLat / 2) ** 2 +
+  //     Math.cos(toRad(lat1)) *
+  //       Math.cos(toRad(lat2)) *
+  //       Math.sin(dLng / 2) ** 2;
+
+  //   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  // }
+
+  function isNearRoute(light, route, thresholdMeters = 30) {
+    const point = turf.point([light.lng, light.lat]);
+    const line = turf.lineString(route.map(([lat, lng]) => [lng, lat]));
+
+    const distance = turf.pointToLineDistance(point, line, {
+      units: "meters",
     });
+
+    return distance < thresholdMeters;
   }
+
+  const routeTrafficLights = useMemo(() => {
+    return routes.map((route) => ({
+      routeId: route.id,
+      lights: trafficLights.filter(light =>
+        isNearRoute(light, route.latLngs)
+      ),
+    }));
+  }, [routes, trafficLights]);
 
   return (
     <MapContainer
@@ -99,24 +123,26 @@ export default function MapView({ currentLocation, routes = [], trafficLights = 
         </React.Fragment>
       ))}
 
-      {/* 🚦 Traffic lights for BEST route */}
-      {routes.length > 0 &&
-        trafficLights
-          .filter(light => isNearRoute(light, routes[0].latLngs))
-          .map((light) => (
-            <Marker
-              key={light.id}
-              position={[light.lat, light.lng]}
-              icon={L.divIcon({
-                html: '<div style="font-size:14px;">🚦</div>',
-                className: '',
-                iconSize: [14, 14],
-              })}
-            >
-              <Popup>{light.intersection}</Popup>
-            </Marker>
-          ))
-      }
+      {/* Traffic lights for each route */}
+      {routeTrafficLights.map((routeData, routeIndex) =>
+        routeData.lights.map((light) => (
+          <Marker
+            key={`${routeData.routeId}-${light.id}`}
+            position={[light.lat, light.lng]}
+            icon={L.divIcon({
+              html: `<div style="font-size:14px;">🚦</div>`,
+              className: '',
+              iconSize: [14, 14],
+            })}
+          >
+            <Popup>
+              {light.intersection}
+              <br />
+              Route {routeIndex + 1}
+            </Popup>
+          </Marker>
+        ))
+      )}
     </MapContainer>
   );
 }

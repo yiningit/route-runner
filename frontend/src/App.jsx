@@ -39,11 +39,11 @@ function App() {
 
   // Fetch traffic light locations
   useEffect(() => {
-  fetch("http://localhost:8000/traffic-lights")
-    .then(res => res.json())
-    .then(data => setTrafficLights(data))
-    .catch(err => console.error("Error loading traffic lights:", err));
-}, []);
+    fetch("http://localhost:8000/traffic-lights")
+      .then(res => res.json())
+      .then(data => setTrafficLights(data))
+      .catch(err => console.error("Error loading traffic lights:", err));
+  }, []);
 
   return (
     <>
