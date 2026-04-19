@@ -154,10 +154,10 @@ function App() {
           }}
         >
           <img
-            src="/big%20cat%20running%20GIF.gif"
+            src="/big-cat-running.gif"
             alt="Loading routes"
             style={{
-              width: 140,   // 🔥 MUCH BIGGER
+              width: 140,
               objectFit: 'contain',
               mixBlendMode: 'multiply',
             }}
