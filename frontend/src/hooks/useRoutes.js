@@ -27,6 +27,7 @@ export default function useRoutes(currentLocation) {
         console.log('Distance:      ', route.distance_km, 'km');
         console.log('Elevation gain:', route.elevation_gain_m, 'm');
         console.log('Traffic lights:', route.traffic_light_count);
+        console.log('Crowd score:   ', route.crowd_score);
         console.log('Flow score:    ', route.flow_score);
         console.log('Penalty score: ', route.score);
         console.log('Coordinates:   ', route.coordinates.length, 'points');

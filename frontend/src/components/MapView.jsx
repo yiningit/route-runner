@@ -47,7 +47,6 @@ function getRouteColor(index) {
   return ROUTE_COLORS[index] ?? '#3b82f6'; // blue fallback for routes 4+
 }
 
-
 function downloadGPX(route) {
   const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="RunRoutes">
@@ -196,6 +195,7 @@ export default function MapView({
               {route.distance_km.toFixed(2) ?? 0} km
               {route.elevation_gain_m > 0 && <> · ↑{route.elevation_gain_m} m</>}
               <> · 🚦{route.traffic_light_count}</>
+              <> · 👥{route.crowd_score?.toFixed(2)}</>
 
               <div style={{ marginTop: 10 }}>
                 <button onClick={() => downloadGPX(route)}>

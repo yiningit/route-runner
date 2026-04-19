@@ -167,9 +167,9 @@ def score_route(
 
     # Weights — tweak as needed
     W_DISTANCE = 1.0
-    W_LIGHTS = 5.0 if prefs.avoid_lights else 0.5
+    W_LIGHTS = 0.5 if prefs.avoid_lights else 0.1
     W_ASCENT = 0.1 if prefs.avoid_hills else 0.01
-    W_CROWDS = 0.5 if prefs.avoid_crowds else 0.1
+    W_CROWDS = 5 if prefs.avoid_crowds else 1
 
     penalty = (
         abs(distance_km - prefs.target_distance_km) * W_DISTANCE
@@ -185,8 +185,8 @@ def score_route(
         "distance_km": round(distance_km, 2),
         "lights": lights_count,
         "elevation_gain_m": round(ascent_m, 1),
+        "crowd_score": round(crowd_score, 3),
         "flow_score": round(flow_score, 2),
-        # ADD CROWD SCORE
         "penalty": round(penalty, 3),
     }
 
@@ -317,6 +317,7 @@ async def generate(request: RouteRequest) -> RouteResponse:
             distance_km=r["distance_km"],
             elevation_gain_m=r["elevation_gain_m"],
             traffic_light_count=r["lights"],
+            crowd_score = r["crowd_score"],
             flow_score=r["flow_score"],
             score=r["penalty"],
             label=r["label"],

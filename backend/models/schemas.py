@@ -31,6 +31,7 @@ class RouteResult(BaseModel):
     distance_km: float
     elevation_gain_m: float
     traffic_light_count: int
+    crowd_score: float
     flow_score: float
     score: float
     label: str                       # e.g. "Fewest Lights", "Flattest"
