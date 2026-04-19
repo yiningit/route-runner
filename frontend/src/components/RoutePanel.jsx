@@ -1,41 +1,9 @@
 import { useEffect, useState } from 'react';
+import DistanceSlider from './DistanceSlider.jsx';
 
 const ROUTE_COLORS = ['#22c55e', '#facc15', '#ef4444'];
 const FALLBACK_LABELS = ['Best', 'Good', 'Okay'];
-
-const KM_TO_MILES = 0.621371;
-
-const SNAP_POINTS_KM = [
-  1.6,   // 1 mile
-  3.2,   // 2 miles
-  5.0,   // 5k
-  8.0,   // 5 miles
-  10.0,  // 10k
-  16.1,  // 10 miles
-  21.1,  // half marathon
-  42.2,  // marathon
-];
-
-const SLIDER_MIN = 1;
-const SLIDER_MAX = 42.2;
-const SNAP_THRESHOLD_KM = 0.8;
 const ERROR_DISPLAY_MS = 4000;
-
-function snapDistance(value) {
-  const nearest = SNAP_POINTS_KM.find(
-    (point) => Math.abs(point - value) <= SNAP_THRESHOLD_KM
-  );
-  return nearest ?? value;
-}
-
-function formatKm(km) {
-  return `${km % 1 === 0 ? km : km.toFixed(1)} km`;
-}
-
-function formatMiles(km) {
-  const miles = km * KM_TO_MILES;
-  return `${miles % 1 === 0 ? miles : miles.toFixed(1)} mi`;
-}
 
 function Dot({ color }) {
   return (
@@ -93,31 +61,6 @@ export default function RoutePanel({ distance, onDistanceChange, onFindRoutes, l
       }}
     >
       <style>{`
-        .vertical-slider {
-          writing-mode: vertical-rl;
-          transform: rotate(180deg);
-          width: 30px;
-          cursor: pointer;
-          flex-shrink: 0;
-          -webkit-appearance: slider-vertical;
-          appearance: auto;
-          flex: 1;
-        }
-        .vertical-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #3b82f6;
-          cursor: pointer;
-          margin-left: -6px;
-        }
-        .vertical-slider::-webkit-slider-runnable-track {
-          width: 6px;
-          background: #ddd;
-          border-radius: 3px;
-        }
         .find-routes-btn {
           width: 100%;
           padding: 8px 0;
@@ -157,74 +100,11 @@ export default function RoutePanel({ distance, onDistanceChange, onFindRoutes, l
         </div>
       ))}
 
-      {/* Divider */}
       <hr style={{ width: '100%', margin: '10px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
-      {/* Distance display */}
-      <div style={{ textAlign: 'center', marginBottom: 8 }}>
-        <span style={{ fontWeight: '600', fontSize: '15px' }}>{formatKm(distance)}</span>
-        <span style={{ color: '#888', fontSize: '12px', marginLeft: 6 }}>
-          {formatMiles(distance)}
-        </span>
-      </div>
+      {/* Distance slider */}
+      <DistanceSlider distance={distance} onDistanceChange={onDistanceChange} />
 
-      {/* Slider row — grows to fill remaining panel height */}
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, minHeight: 0 }}>
-
-        {/* km labels (left) */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          fontSize: 10,
-          color: '#555',
-          textAlign: 'right',
-          flexShrink: 0,
-        }}>
-          <span>42</span>
-          <span>21</span>
-          <span>16</span>
-          <span>10</span>
-          <span>5</span>
-          <span>3</span>
-          <span>1.6</span>
-        </div>
-
-        {/* Vertical slider */}
-        <input
-          className="vertical-slider"
-          type="range"
-          min={SLIDER_MIN}
-          max={SLIDER_MAX}
-          step="0.1"
-          value={distance}
-          onChange={(e) => {
-            const raw = parseFloat(e.target.value);
-            onDistanceChange(snapDistance(raw));
-          }}
-        />
-
-        {/* miles labels (right) */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          fontSize: 10,
-          color: '#888',
-          textAlign: 'left',
-          flexShrink: 0,
-        }}>
-          <span>26mi</span>
-          <span>13mi</span>
-          <span>10mi</span>
-          <span>6mi</span>
-          <span>3mi</span>
-          <span>2mi</span>
-          <span>1mi</span>
-        </div>
-      </div>
-
-      {/* Divider */}
       <hr style={{ width: '100%', margin: '10px 0', border: 'none', borderTop: '1px solid #eee' }} />
 
       {/* Find Routes button */}
@@ -236,7 +116,7 @@ export default function RoutePanel({ distance, onDistanceChange, onFindRoutes, l
         {loading ? 'Finding…' : visibleError ? '⚠ Try again' : 'Find Routes'}
       </button>
 
-      {/* Error message below button */}
+      {/* Temporary error message */}
       {visibleError && (
         <div style={{
           marginTop: 6,
