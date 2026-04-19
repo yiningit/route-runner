@@ -26,7 +26,8 @@ class RouteRequest(BaseModel):
 
 class RouteResult(BaseModel):
     id: str
-    coordinates: list[list[float]]  # [[lat, lng], ...] — Leaflet order
+    coordinates: list[list[float]]  # [[lat, lng], ...] - Leaflet order
+    elevation_profile: list[float]   # elevation per coord - used by GPX generation
     distance_km: float
     elevation_gain_m: float
     traffic_light_count: int

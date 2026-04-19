@@ -28,7 +28,7 @@ from models.schemas import RouteRequest, RouteResponse, RouteResult
 class Route:
     """Normalized route. Populate from ORS via `route_from_ors_feature()`."""
     id: str
-    coordinates: list[tuple[float, float]]   # [(lat, lng), ...] — Leaflet order
+    coordinates: list[tuple[float, float]]   # [[lat, lng], ...] — Leaflet
     distance_m: float
     ascent_m: float                          # total climbing (from ORS `ascent`)
 
@@ -230,12 +230,18 @@ def route_from_ors_feature(feature: dict, route_id: str) -> Route:
     coords_3d = feature["geometry"]["coordinates"]
     latlng = [(float(c[1]), float(c[0])) for c in coords_3d]
 
+    elevation_profile = [
+        float(c[2]) if len(c) > 2 else 0.0
+        for c in coords_3d
+    ]
+
     props = feature.get("properties", {})
     summary = props.get("summary", {})
 
     return Route(
         id=route_id,
         coordinates=latlng,
+        elevation_profile=elevation_profile,
         distance_m=float(summary.get("distance", 0)),
         ascent_m=float(props.get("ascent", 0)),
     )
@@ -283,6 +289,7 @@ async def generate(request: RouteRequest) -> RouteResponse:
         RouteResult(
             id=r["id"],
             coordinates=r["coordinates"],
+            elevation_profile=r["elevation_profile"],
             distance_km=r["distance_km"],
             elevation_gain_m=r["elevation_gain_m"],
             traffic_light_count=r["lights"],
