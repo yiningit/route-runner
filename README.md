@@ -160,10 +160,10 @@ Each candidate route receives a **penalty score** — lower is better. The score
  
 | Factor | Weight (avoid on) | Weight (avoid off) |
 |---|---|---|
-| Distance deviation from target | 1.0 | 1.0 |
-| Traffic light count | 5.0 | 1 |
-| Elevation gain | 0.1 | 0.01 |
-| Crowd density | 5 | 0.1 |
+| Distance deviation from target | 2.0 | 2.0 |
+| Traffic light count | 2.0 | 0.5 |
+| Elevation gain | 0.05 | 0.005 |
+| Crowd density | 8 | 0.5 |
  
 Crowd density is estimated by sampling points along the route, finding nearby Foursquare venues within 150m, and scoring each venue by category and time of day (e.g. cafes score high in the morning, bars score high at night).
  
