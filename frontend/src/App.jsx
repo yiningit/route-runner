@@ -72,7 +72,7 @@ function App() {
           src="/route-runner-logo.jpeg"
           alt="Route Runner"
           style={{
-            height: 60,   // 🔥 increased from 38 → 60
+            height: 60,
             objectFit: 'contain',
             display: 'block',
           }}
@@ -119,7 +119,7 @@ function App() {
           src="/route-runner-logo.png"
           alt="Route Runner"
           style={{
-            height: 110,
+            height: 90,
             display: 'block',
           }}
         />

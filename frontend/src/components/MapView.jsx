@@ -198,7 +198,7 @@ export default function MapView({
               <> · 👥{route.crowd_score?.toFixed(2)}</>
 
               <div style={{  marginTop: 10 }}>
-                <button style={{  backgroundColor: '#f97316', borderRadius: '6px', border: 'none' }} onClick={() => downloadGPX(route)}>
+                <button style={{  backgroundColor: '#f97316', borderRadius: '3px', border: 'none', fontWeight: 'bold' }} onClick={() => downloadGPX(route)}>
                   Export to Strava
                 </button>
               </div>
