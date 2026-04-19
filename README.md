@@ -8,7 +8,7 @@ Built for the **2026 SUDATA × COMM-STEM Datathon**, tackling Theme 2 (The Geogr
 
 ---
 
-## The problem
+## The Problem
 
 Existing tools like Google Maps or Strava's route builder build routes naively. They don't automatically generate loop routes, or don't score routes against factors that matter to runners — traffic light interruptions, elevation gain, or how crowded the streets feel at different times of day.
 
@@ -32,7 +32,7 @@ Route Runner solves this by combining three open datasets to score routes intell
 
 ---
 
-## Tech stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -44,7 +44,7 @@ Route Runner solves this by combining three open datasets to score routes intell
 
 ---
 
-## Getting started
+## Getting Started
 
 ### Prerequisites
 
