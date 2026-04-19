@@ -167,9 +167,9 @@ def score_route(
 
     # Weights — tweak as needed
     W_DISTANCE = 1.0
-    W_LIGHTS = 0.5 if prefs.avoid_lights else 0.1
+    W_LIGHTS = 5 if prefs.avoid_lights else 1
     W_ASCENT = 0.1 if prefs.avoid_hills else 0.01
-    W_CROWDS = 5 if prefs.avoid_crowds else 1
+    W_CROWDS = 5 if prefs.avoid_crowds else 0.1
 
     penalty = (
         abs(distance_km - prefs.target_distance_km) * W_DISTANCE
