@@ -1,3 +1,4 @@
+import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import React, { useEffect } from 'react';
 
@@ -33,8 +34,16 @@ function getRouteColor(index) {
 //   return ROUTE_LABELS[index] ?? `Route ${index + 1}`;
 // }
 
-export default function MapView({ currentLocation, routes = [] }) {
+export default function MapView({ currentLocation, routes = [], trafficLights = [] }) {
   const defaultCenter = [-33.8688, 151.2093]; // Sydney fallback
+
+  function isNearRoute(light, route, threshold = 0.003) {
+    return route.some(([lat, lng]) => {
+      const dLat = lat - light.lat;
+      const dLng = lng - light.lng;
+      return Math.sqrt(dLat * dLat + dLng * dLng) < threshold;
+    });
+  }
 
   return (
     <MapContainer
@@ -89,6 +98,25 @@ export default function MapView({ currentLocation, routes = [] }) {
           </Polyline>
         </React.Fragment>
       ))}
+
+      {/* 🚦 Traffic lights for BEST route */}
+      {routes.length > 0 &&
+        trafficLights
+          .filter(light => isNearRoute(light, routes[0].latLngs))
+          .map((light) => (
+            <Marker
+              key={light.id}
+              position={[light.lat, light.lng]}
+              icon={L.divIcon({
+                html: '<div style="font-size:14px;">🚦</div>',
+                className: '',
+                iconSize: [14, 14],
+              })}
+            >
+              <Popup>{light.intersection}</Popup>
+            </Marker>
+          ))
+      }
     </MapContainer>
   );
 }

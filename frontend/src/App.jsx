@@ -17,6 +17,7 @@ function App() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [distance, setDistance] = useState(5);
   const { routes, loading, error, findRoutes } = useRoutes(currentLocation);
+  const [trafficLights, setTrafficLights] = useState([]);
 
   // Get user location — fall back to Sydney CBD if denied
   useEffect(() => {
@@ -36,6 +37,14 @@ function App() {
     );
   }, []);
 
+  // Fetch traffic light locations
+  useEffect(() => {
+  fetch("http://localhost:8000/traffic-lights")
+    .then(res => res.json())
+    .then(data => setTrafficLights(data))
+    .catch(err => console.error("Error loading traffic lights:", err));
+}, []);
+
   return (
     <>
       <RoutePanel
@@ -51,6 +60,7 @@ function App() {
         <MapView
           routes={routes}
           currentLocation={currentLocation}
+          trafficLights={trafficLights}
         />
       </div>
     </>
