@@ -12,7 +12,10 @@ export default function useRoutes(currentLocation) {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchRoutes(currentLocation.lat, currentLocation.lng, distance);
+      const data = await fetchRoutes(currentLocation.lat, currentLocation.lng, distance, {
+        avoidTrafficLights: true,
+        avoidHills: true,
+      });
       const converted = data.routes.map((route) => ({
         ...route,
         latLngs: route.coordinates, // already [lat, lng] from routing_service

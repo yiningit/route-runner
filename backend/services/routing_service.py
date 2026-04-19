@@ -164,10 +164,10 @@ def score_route(
     crowd_score = compute_route_popularity(route, places)
 
     # Weights
-    W_DISTANCE = 1.0
-    W_LIGHTS = 5 if prefs.avoid_lights else 1
-    W_ASCENT = 0.1 if prefs.avoid_hills else 0.01
-    W_CROWDS = 5 if prefs.avoid_crowds else 0.1
+    W_DISTANCE = 2.0 
+    W_LIGHTS = 2.0 if prefs.avoid_lights else 0.5   # strongest anchor
+    W_ASCENT = 0.05 if prefs.avoid_hills else 0.005   # kept small, ascent in meters is large
+    W_CROWDS = 8.0 if prefs.avoid_crowds else 0.5   # strong anchor - meaningfully affects small differences in traffic light number
 
     penalty = (
         abs(distance_km - prefs.target_distance_km) * W_DISTANCE
@@ -283,6 +283,8 @@ async def generate(request: RouteRequest) -> RouteResponse:
         lng=request.start_lng,
         distance_km=request.distance_km,
     )
+
+    # print(f"[DEBUG PREFS] avoid_lights={request.avoid_traffic_lights} avoid_hills={request.avoid_hills}")   # DEBUG
 
     # 2. Convert ORS dicts → Route dataclasses using the existing adapter
     #    ors_client returns dicts with keys: geojson, distance_m, duration_s,
